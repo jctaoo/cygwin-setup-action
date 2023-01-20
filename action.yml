@@ -8,6 +8,10 @@ inputs:
   packages:
     description: "Package list to install by Cygwin."
     required: true
+  prepare:
+    description: "Prepare setup or setup."
+    required: true
+    default: "false"
 runs:
   using: "node16"
   main: "dist/index.js"
