@@ -19,6 +19,34 @@ module.exports.downloadFile = async (url, output) => {
 
 /***/ }),
 
+/***/ 1907:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const { spawn } = __nccwpck_require__(2081);
+
+module.exports.spawnChild = async function (command, args) {
+  const child = spawn(command, args);
+
+  let data = "";
+  for await (const chunk of child.stdout) {
+    data += chunk;
+  }
+  let error = "";
+  for await (const chunk of child.stderr) {
+    error += chunk;
+  }
+  const exitCode = await new Promise((resolve, reject) => {
+    child.on('close', resolve);
+  });
+
+  if (exitCode) {
+    throw new Error(`subprocess error exit ${exitCode}, ${error}`);
+  }
+  return data;
+}
+
+/***/ }),
+
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -9629,6 +9657,14 @@ module.exports = require("assert");
 
 /***/ }),
 
+/***/ 2081:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
+
+/***/ }),
+
 /***/ 6113:
 /***/ ((module) => {
 
@@ -9796,6 +9832,7 @@ const { downloadFile } = __nccwpck_require__(6787);
 const path = (__nccwpck_require__(1017).win32);
 const os = __nccwpck_require__(2037);
 const fs = __nccwpck_require__(7147);
+const { spawnChild } = __nccwpck_require__(1907);
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
@@ -9808,7 +9845,8 @@ async function main() {
         .map(i =>
             i.split(" ").map(i => i.trim())
         )
-        .flat();
+        .flat()
+        .filter(i => i.trim().length === 0);
 
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
@@ -9820,7 +9858,16 @@ async function main() {
 
     core.info(`downloaded cygwin setup exe at: ${setupExeOutput}`);
     core.info("prepare to install below packages:");
-    core.info(packages.map(i => `\t- ${i}`).join(os.EOL));
+    core.info(packages.map(i => `  - ${i}`).join(os.EOL));
+
+    const cygwinSite = "http://mirrors.kernel.org/sourceware/cygwin/";
+    const cygwinPackagePath = path.join(installDir, "packages");
+    const args = ['-s', cygwinSite, '-l', cygwinPackagePath, '-R', installDir]
+        .concat(packages.map(i => ['-P', i]))
+        .flat();
+
+    const output = await spawnChild(setupExeOutput, args);
+    core.info(`${setupExeOutput} run successfully: ${output}`);
 }
 
 main().catch(error => core.setFailed(error.message));

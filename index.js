@@ -4,6 +4,7 @@ const { downloadFile } = require('./libs/download');
 const path = require("path").win32;
 const os = require("os");
 const fs = require("fs");
+const { spawnChild } = require('./libs/spwan');
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
@@ -16,7 +17,8 @@ async function main() {
         .map(i =>
             i.split(" ").map(i => i.trim())
         )
-        .flat();
+        .flat()
+        .filter(i => i.trim().length === 0);
 
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
@@ -28,7 +30,16 @@ async function main() {
 
     core.info(`downloaded cygwin setup exe at: ${setupExeOutput}`);
     core.info("prepare to install below packages:");
-    core.info(packages.map(i => `\t- ${i}`).join(os.EOL));
+    core.info(packages.map(i => `  - ${i}`).join(os.EOL));
+
+    const cygwinSite = "http://mirrors.kernel.org/sourceware/cygwin/";
+    const cygwinPackagePath = path.join(installDir, "packages");
+    const args = ['-s', cygwinSite, '-l', cygwinPackagePath, '-R', installDir]
+        .concat(packages.map(i => ['-P', i]))
+        .flat();
+
+    const output = await spawnChild(setupExeOutput, args);
+    core.info(`${setupExeOutput} run successfully: ${output}`);
 }
 
 main().catch(error => core.setFailed(error.message));
