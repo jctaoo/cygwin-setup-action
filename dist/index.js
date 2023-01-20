@@ -10033,10 +10033,10 @@ async function main() {
 
     core.info(`run: ${setupExeOutput} ${args.join(" ")}`)
     const output = await spawnChild(setupExeOutput, args);
-    core.info(`${setupExeOutput} run successfully: ${output}`);
+    core.info(`${setupExeOutput} run completed with exits code: ${output}`);
 
     const tree = dirTree(installDir);
-    core.info(tree);
+    core.info(JSON.stringify(null, 2, tree));
 }
 
 main().catch(error => core.setFailed(error.message));
