@@ -43,11 +43,11 @@ async function main() {
     const output = await spawnChild(setupExeOutput, args);
     core.info(`${setupExeOutput} run completed with exits code: ${output}`);
 
-    const tree = dirTree(installDir);
-    core.info(JSON.stringify(tree, null, 2));
-
     core.info(`add path: ${path.join(installDir, "bin")}`)
     core.addPath(path.join(installDir, "bin"));
+
+    const lockFileContent = packages.join(os.EOL);
+    fs.writeFileSync(path.join(installDir, "package.lock"), lockFileContent);
 }
 
 main().catch(error => core.setFailed(error.message));

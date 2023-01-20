@@ -4594,175 +4594,6 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
-/***/ 4605:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const FS = __nccwpck_require__(7147);
-const PATH = __nccwpck_require__(1017);
-const constants = {
-  DIRECTORY: 'directory',
-  FILE: 'file'
-}
-
-function safeReadDirSync (path) {
-  let dirData = {};
-  try {
-    dirData = FS.readdirSync(path);
-  } catch(ex) {
-    if (ex.code == "EACCES" || ex.code == "EPERM") {
-      //User does not have permissions, ignore directory
-      return null;
-    }
-    else throw ex;
-  }
-  return dirData;
-}
-
-/**
- * Normalizes windows style paths by replacing double backslahes with single forward slahes (unix style).
- * @param  {string} path
- * @return {string}
- */
-function normalizePath(path) {
-  return path.replace(/\\/g, '/');
-}
-
-/**
- * Tests if the supplied parameter is of type RegExp
- * @param  {any}  regExp
- * @return {Boolean}
- */
-function isRegExp(regExp) {
-  return typeof regExp === "object" && regExp.constructor == RegExp;
-}
-
-/**
- * Collects the files and folders for a directory path into an Object, subject
- * to the options supplied, and invoking optional
- * @param  {String} path
- * @param  {Object} options
- * @param  {function} onEachFile
- * @param  {function} onEachDirectory
- * @return {Object}
- */
-function directoryTree (path, options, onEachFile, onEachDirectory, currentDepth = 0) {
-  options = options || {};
-
-  if (options.depth !== undefined && options.attributes && options.attributes.indexOf('size') !== -1) {
-    throw new Error('usage of size attribute with depth option is prohibited');
-  }
-
-  const name = PATH.basename(path);
-  path = options.normalizePath ? normalizePath(path) : path;
-  const item = { path, name };
-  let stats;
-  let lstat;
-
-  try {
-    stats = FS.statSync(path);
-    lstat = FS.lstatSync(path);
-  }
-  catch (e) { return null }
-
-  // Skip if it matches the exclude regex
-  if (options.exclude) {
-    const excludes =  isRegExp(options.exclude) ? [options.exclude] : options.exclude;
-    if (excludes.some((exclusion) => exclusion.test(path))) {
-      return null;
-    }
-  }
-
-  if (lstat.isSymbolicLink()) {
-    item.isSymbolicLink = true;
-    // Skip if symbolic links should not be followed
-    if (options.followSymlinks === false)
-      return null;
-    // Initialize the symbolic links array to avoid infinite loops
-    if (!options.symlinks)
-      options = { ...options, symlinks: [] };
-    // Skip if a cyclic symbolic link has been found
-    if (options.symlinks.find(ino => ino === lstat.ino)) {
-      return null;
-    } else {
-      options.symlinks.push(lstat.ino);
-    }
-  }
-
-  if (stats.isFile()) {
-
-    const ext = PATH.extname(path).toLowerCase();
-
-    // Skip if it does not match the extension regex
-    if (options.extensions && !options.extensions.test(ext))
-      return null;
-
-
-    if (options.attributes) {
-      options.attributes.forEach((attribute) => {
-        switch (attribute) {
-          case 'extension':
-            item.extension = ext;
-            break;
-          case 'type':
-            item.type = constants.FILE;
-            break;
-          default:
-            item[attribute] = stats[attribute];
-            break;
-        }
-      });
-    }
-
-    if (onEachFile) {
-      onEachFile(item, path, stats);
-    }
-  }
-  else if (stats.isDirectory()) {
-    let dirData = safeReadDirSync(path);
-    if (dirData === null) return null;
-
-    if (options.depth === undefined || options.depth > currentDepth) {
-      item.children = dirData
-          .map(child => directoryTree(PATH.join(path, child), options, onEachFile, onEachDirectory, currentDepth + 1))
-          .filter(e => !!e);
-    }
-
-    if (options.attributes) {
-      options.attributes.forEach((attribute) => {
-        switch (attribute) {
-          case 'size':
-            item.size = item.children.reduce((prev, cur) => prev + cur.size, 0);
-            break;
-          case 'type':
-            item.type = constants.DIRECTORY;
-            break;
-          case 'extension':
-            break;
-          default:
-            item[attribute] = stats[attribute];
-            break;
-        }
-        
-      });
-    }
-
-    if (onEachDirectory) {
-      onEachDirectory(item, path, stats);
-    }
-  } else {
-    return null; // Or set item.size = 0 for devices, FIFO and sockets ?
-  }
-  return item;
-}
-
-module.exports = directoryTree;
-
-
-/***/ }),
-
 /***/ 3287:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -9805,6 +9636,14 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6250:
+/***/ ((module) => {
+
+module.exports = eval("require")("directory-tree");
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -9997,7 +9836,7 @@ const path = (__nccwpck_require__(1017).win32);
 const os = __nccwpck_require__(2037);
 const fs = __nccwpck_require__(7147);
 const { spawnChild } = __nccwpck_require__(1907);
-const dirTree = __nccwpck_require__(4605);
+const dirTree = __nccwpck_require__(6250);
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
@@ -10035,11 +9874,11 @@ async function main() {
     const output = await spawnChild(setupExeOutput, args);
     core.info(`${setupExeOutput} run completed with exits code: ${output}`);
 
-    const tree = dirTree(installDir);
-    core.info(JSON.stringify(tree, null, 2));
-
     core.info(`add path: ${path.join(installDir, "bin")}`)
     core.addPath(path.join(installDir, "bin"));
+
+    const lockFileContent = packages.join(os.EOL);
+    fs.writeFileSync(path.join(installDir, "package.lock"), lockFileContent);
 }
 
 main().catch(error => core.setFailed(error.message));
