@@ -27,22 +27,17 @@ const { spawn } = __nccwpck_require__(2081);
 module.exports.spawnChild = async function (command, args) {
   const child = spawn(command, args);
 
-  let data = "";
-  for await (const chunk of child.stdout) {
-    data += chunk;
-  }
-  let error = "";
-  for await (const chunk of child.stderr) {
-    error += chunk;
-  }
-  const exitCode = await new Promise((resolve, reject) => {
-    child.on('close', resolve);
+  return new Promise((resolve) => {
+    child.stdout.on("data", (x) => {
+      process.stdout.write(x.toString());
+    });
+    child.stderr.on("data", (x) => {
+      process.stderr.write(x.toString());
+    });
+    child.on("exit", (code) => {
+      resolve(code);
+    });
   });
-
-  if (exitCode) {
-    throw new Error(`subprocess error exit ${exitCode}, ${error}`);
-  }
-  return data;
 }
 
 /***/ }),
