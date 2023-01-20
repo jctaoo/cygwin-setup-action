@@ -67490,12 +67490,12 @@ async function main() {
         .flat()
         .filter(i => i.trim().length !== 0);
     const cacheKey = hash(packages.join(";"));
-    const compressPath = path.resolve("C:\\cygwin.7z");
+    // const compressPath = path.resolve("C:\\cygwin.7z");
 
     core.info(`Cache key is: ${cacheKey}`)
 
     const cachePath = [
-        compressPath
+        installDir
     ]
     const hitKey = await cache.restoreCache(cachePath, cacheKey, [], {}, false)
     if (!!hitKey) {
@@ -67528,14 +67528,11 @@ async function main() {
     core.addPath(path.join(installDir, "bin"));
 
     // compress cygwin install dir to cache
-    zip.add(compressPath, [installDir], { recursive: true })
-        .on("progress", (progress) => core.info(progress.percent))
-        .on("end", async () => {
-            const cacheId = await cache.saveCache(cachePath, cacheKey, {}, false);
-            if (!!cacheId) {
-                core.info(`Cache cygwin successfully (key: ${cacheId})`)
-            }
-        });
+
+    const cacheId = await cache.saveCache(cachePath, cacheKey, {}, false);
+    if (!!cacheId) {
+        core.info(`Cache cygwin successfully (key: ${cacheId})`)
+    }
 }
 
 main().catch(error => core.setFailed(error.message));
