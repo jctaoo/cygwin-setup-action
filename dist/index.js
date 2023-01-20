@@ -10037,6 +10037,9 @@ async function main() {
 
     const tree = dirTree(installDir);
     core.info(JSON.stringify(null, 2, tree));
+
+    core.info(`add path: ${path.join(installDir, "bin")}`)
+    core.addPath(path.join(installDir, "bin"));
 }
 
 main().catch(error => core.setFailed(error.message));
