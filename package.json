@@ -5,9 +5,15 @@
   "repository": "https://github.com/jctaoo/cygwin-cache-aciton.git",
   "author": "jctaoo <jctaoo@outlook.com>",
   "license": "MIT",
+  "scripts": {
+    "build": "ncc build index.js --license licenses.txt"
+  },
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
     "node-fetch": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.36.0"
   }
 }
