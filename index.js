@@ -6,6 +6,7 @@ const fs = require("fs");
 const exec = require('@actions/exec');
 const cache = require('@actions/cache');
 const { hash } = require('./libs/hash');
+const zip = require('node-7z');
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
@@ -21,12 +22,14 @@ async function main() {
         .flat()
         .filter(i => i.trim().length !== 0);
     const cacheKey = hash(packages.join(";"));
+    const compressPath = path.resolve("C:\\cygwin.7z");
+
     core.info(`Cache key is: ${cacheKey}`)
 
     const cachePath = [
-        installDir
+        compressPath
     ]
-    const hitKey = await cache.restoreCache(cachePath, cacheKey, [])
+    const hitKey = await cache.restoreCache(cachePath, cacheKey, [], {}, false)
     if (!!hitKey) {
         core.info(`Find cygwin cache (key: ${hitKey}), skip installation.`)
         return;
@@ -35,7 +38,6 @@ async function main() {
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
     }
-
 
     const downloadUrl = `https://cygwin.com/setup-x86_64.exe`
     const setupExeOutput = path.join(installDir, "setup.exe");
@@ -57,10 +59,13 @@ async function main() {
     core.info(`add path: ${path.join(installDir, "bin")}`)
     core.addPath(path.join(installDir, "bin"));
 
-    const cacheId = await cache.saveCache(cachePath, cacheKey);
-    if (!!cacheId) {
-        core.info(`Cache cygwin successfully (key: ${cacheId})`)
-    }
+    // compress cygwin install dir to cache
+    zip.add(compressPath, [installDir], { recursive: true }).on("end", async () => {
+        const cacheId = await cache.saveCache(cachePath, cacheKey, {}, false);
+        if (!!cacheId) {
+            core.info(`Cache cygwin successfully (key: ${cacheId})`)
+        }
+    });
 }
 
 main().catch(error => core.setFailed(error.message));
