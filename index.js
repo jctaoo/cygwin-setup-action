@@ -12,6 +12,7 @@ if (process.platform !== 'win32') {
 
 async function main() {
     const installDir = core.getInput('install-dir');
+    const prepare = core.getInput('prepare');
     const packages = core.getInput("packages")
         .split(os.EOL)
         .map(i =>
@@ -20,8 +21,17 @@ async function main() {
         .flat()
         .filter(i => i.trim().length !== 0);
 
+    const lockFilePath = path.join(installDir, "package.lock");
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
+    }
+
+    if (prepare === 'true') {
+        const lockFileContent = packages.join(os.EOL);
+        await fs.promises.writeFile(path.join(installDir, "package.lock"), lockFileContent);
+        core.setOutput("lock-file", lockFilePath);
+        core.info("prepare done.")
+        return;
     }
 
     const downloadUrl = `https://cygwin.com/setup-x86_64.exe`
@@ -38,15 +48,11 @@ async function main() {
         .concat(packages.map(i => ['-P', i]))
         .flat();
 
-    core.info(`run: ${setupExeOutput} ${args.join(" ")}`)
     const output = await spawnChild(setupExeOutput, args);
     core.info(`${setupExeOutput} run completed with exits code: ${output}`);
 
     core.info(`add path: ${path.join(installDir, "bin")}`)
     core.addPath(path.join(installDir, "bin"));
-
-    const lockFileContent = packages.join(os.EOL);
-    fs.writeFileSync(path.join(installDir, "package.lock"), lockFileContent);
 }
 
 main().catch(error => core.setFailed(error.message));
