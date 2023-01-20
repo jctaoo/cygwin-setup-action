@@ -9795,6 +9795,7 @@ const github = __nccwpck_require__(5438);
 const { downloadFile } = __nccwpck_require__(6787);
 const path = (__nccwpck_require__(1017).win32);
 const os = __nccwpck_require__(2037);
+const fs = __nccwpck_require__(7147);
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
@@ -9808,6 +9809,10 @@ async function main() {
             i.split(" ").map(i => i.trim())
         )
         .flat();
+
+    if (fs.existsSync(installDir)) {
+        fs.mkdirSync(installDir, { recursive: true });
+    }
 
     const downloadUrl = `https://cygwin.com/setup-x86_64.exe`
     const setupExeOutput = path.join(installDir, "setup.exe");

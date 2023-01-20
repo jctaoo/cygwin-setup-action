@@ -3,6 +3,7 @@ const github = require('@actions/github');
 const { downloadFile } = require('./libs/download');
 const path = require("path").win32;
 const os = require("os");
+const fs = require("fs");
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
@@ -16,6 +17,10 @@ async function main() {
             i.split(" ").map(i => i.trim())
         )
         .flat();
+
+    if (fs.existsSync(installDir)) {
+        fs.mkdirSync(installDir, { recursive: true });
+    }
 
     const downloadUrl = `https://cygwin.com/setup-x86_64.exe`
     const setupExeOutput = path.join(installDir, "setup.exe");
