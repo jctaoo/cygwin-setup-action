@@ -35,7 +35,7 @@ async function main() {
 
     const cygwinSite = "http://mirrors.kernel.org/sourceware/cygwin/";
     const cygwinPackagePath = path.join(installDir, "packages");
-    const args = ['-l', cygwinPackagePath, '-R', installDir]
+    const args = ['-qgnO', '-s', cygwinSite, '-l', cygwinPackagePath, '-R', installDir]
         .concat(packages.map(i => ['-P', i]))
         .flat();
 
