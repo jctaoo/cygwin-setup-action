@@ -18,7 +18,7 @@ async function main() {
         )
         .flat();
 
-    if (fs.existsSync(installDir)) {
+    if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
     }
 
