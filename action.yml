@@ -7,7 +7,7 @@ inputs:
     default: "C:\\cygwin"
   packages:
     description: "Package list to install by Cygwin."
-    required: true
+    required: false
   prepare:
     description: "Prepare setup or setup."
     required: true

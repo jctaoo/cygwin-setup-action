@@ -9835,8 +9835,14 @@ if (process.platform !== 'win32') {
 
 async function main() {
     const installDir = core.getInput('install-dir');
+    const lockFilePath = path.join(installDir, "package.lock");
     const prepare = core.getInput('prepare');
-    const packages = core.getInput("packages")
+
+    if (prepare !== 'true' && !fs.existsSync(lockFilePath)) {
+        core.setFailed("Property packages must be provided");
+    }
+
+    const packages = (core.getInput("packages") ?? await fs.promises.readFile(lockFilePath).then(i => i.toString()))
         .split(os.EOL)
         .map(i =>
             i.split(" ").map(i => i.trim())
@@ -9844,7 +9850,6 @@ async function main() {
         .flat()
         .filter(i => i.trim().length !== 0);
 
-    const lockFilePath = path.join(installDir, "package.lock");
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
     }
