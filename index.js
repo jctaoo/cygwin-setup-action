@@ -18,7 +18,7 @@ async function main() {
             i.split(" ").map(i => i.trim())
         )
         .flat()
-        .filter(i => i.trim().length === 0);
+        .filter(i => i.trim().length !== 0);
 
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
