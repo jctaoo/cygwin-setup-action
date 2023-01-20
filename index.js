@@ -4,6 +4,8 @@ const path = require("path").win32;
 const os = require("os");
 const fs = require("fs");
 const exec = require('@actions/exec');
+const cache = require('@actions/cache');
+const { hash } = require('./libs/hash');
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
@@ -18,10 +20,22 @@ async function main() {
         )
         .flat()
         .filter(i => i.trim().length !== 0);
+    const cacheKey = hash(packages.join(";"));
+    core.info(`Cache key is: ${cacheKey}`)
+
+    const cachePath = [
+        installDir
+    ]
+    const hitKey = await cache.restoreCache(cachePath, cacheKey, [])
+    if (!!hitKey) {
+        core.info(`Find cygwin cache (key: ${hitKey}), skip installation.`)
+        return;
+    }
 
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
     }
+
 
     const downloadUrl = `https://cygwin.com/setup-x86_64.exe`
     const setupExeOutput = path.join(installDir, "setup.exe");
@@ -42,6 +56,11 @@ async function main() {
 
     core.info(`add path: ${path.join(installDir, "bin")}`)
     core.addPath(path.join(installDir, "bin"));
+
+    const cacheId = await cache.saveCache(cachePath, cacheKey);
+    if (!!cacheId) {
+        core.info(`Cache cygwin successfully (key: ${cacheId})`)
+    }
 }
 
 main().catch(error => core.setFailed(error.message));
