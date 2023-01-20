@@ -9,7 +9,7 @@ const fs = __nccwpck_require__(7147);
 
 module.exports.downloadFile = async (url, output) => {
     const res = await fetch(url);
-    const fileStream = fs.createWriteStream(path);
+    const fileStream = fs.createWriteStream(output);
     await new Promise((resolve, reject) => {
         res.body.pipe(fileStream);
         res.body.on("error", reject);
