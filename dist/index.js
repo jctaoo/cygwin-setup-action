@@ -9636,14 +9636,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 6250:
-/***/ ((module) => {
-
-module.exports = eval("require")("directory-tree");
-
-
-/***/ }),
-
 /***/ 2877:
 /***/ ((module) => {
 
@@ -9836,7 +9828,6 @@ const path = (__nccwpck_require__(1017).win32);
 const os = __nccwpck_require__(2037);
 const fs = __nccwpck_require__(7147);
 const { spawnChild } = __nccwpck_require__(1907);
-const dirTree = __nccwpck_require__(6250);
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")

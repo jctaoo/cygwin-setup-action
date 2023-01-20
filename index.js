@@ -5,7 +5,6 @@ const path = require("path").win32;
 const os = require("os");
 const fs = require("fs");
 const { spawnChild } = require('./libs/spwan');
-const dirTree = require("directory-tree");
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
