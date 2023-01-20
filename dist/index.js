@@ -10036,7 +10036,7 @@ async function main() {
     core.info(`${setupExeOutput} run completed with exits code: ${output}`);
 
     const tree = dirTree(installDir);
-    core.info(JSON.stringify(null, 2, tree));
+    core.info(JSON.stringify(tree, null, 2));
 
     core.info(`add path: ${path.join(installDir, "bin")}`)
     core.addPath(path.join(installDir, "bin"));
