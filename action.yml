@@ -1,0 +1,13 @@
+name: "cygwin-setup"
+description: "Cache Cygwin download and installation"
+inputs:
+  install-dir:
+    description: "The path to install Cygwin."
+    required: false
+    default: "C:\\cygwin"
+  packages:
+    description: "Package list to install by Cygwin."
+    required: true
+runs:
+  using: "node16"
+  main: "index.js"

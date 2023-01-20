@@ -1,2 +1,3 @@
-# cygwin-cache-aciton
-Github Action to cache cygwin instllation.
+# cygwin-setup-action
+
+Github Action to setup cygwin on Windows host.
