@@ -1,10 +1,9 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
 const { downloadFile } = require('./libs/download');
 const path = require("path").win32;
 const os = require("os");
 const fs = require("fs");
-const { spawnChild } = require('./libs/spwan');
+const exec = require('@actions/exec');
 
 if (process.platform !== 'win32') {
     core.setFailed("cygwin-setup-action runs only on windows")
@@ -38,7 +37,7 @@ async function main() {
         .concat(packages.map(i => ['-P', i]))
         .flat();
 
-    const output = await spawnChild(setupExeOutput, args);
+    const output = await exec.exec(setupExeOutput, args);
     core.info(`${setupExeOutput} run completed with exits code: ${output}`);
 
     core.info(`add path: ${path.join(installDir, "bin")}`)
