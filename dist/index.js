@@ -9856,10 +9856,13 @@ async function main() {
 
     if (prepare === 'true') {
         const lockFileContent = packages.join(os.EOL);
-        await fs.promises.writeFile(path.join(installDir, "package.lock"), lockFileContent);
+        await fs.promises.writeFile(lockFilePath, lockFileContent);
         core.setOutput("lock-file", lockFilePath);
         core.info("prepare done.")
         return;
+    } else {
+        const test = await fs.promises.readFile(lockFilePath).then(i => i.toString());
+        core.info(test);
     }
 
     const downloadUrl = `https://cygwin.com/setup-x86_64.exe`
