@@ -12,14 +12,7 @@ if (process.platform !== 'win32') {
 
 async function main() {
     const installDir = core.getInput('install-dir');
-    const lockFilePath = path.join(installDir, "package.lock");
-    const prepare = core.getInput('prepare');
-
-    if (prepare !== 'true' && !fs.existsSync(lockFilePath)) {
-        core.setFailed("Property packages must be provided");
-    }
-
-    const packages = (core.getInput("packages") ?? await fs.promises.readFile(lockFilePath).then(i => i.toString()))
+    const packages = core.getInput("packages")
         .split(os.EOL)
         .map(i =>
             i.split(" ").map(i => i.trim())
@@ -29,17 +22,6 @@ async function main() {
 
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
-    }
-
-    if (prepare === 'true') {
-        const lockFileContent = packages.join(os.EOL);
-        await fs.promises.writeFile(lockFilePath, lockFileContent);
-        core.setOutput("lock-file", lockFilePath);
-        core.info("prepare done.")
-        return;
-    } else {
-        const test = await fs.promises.readFile(lockFilePath).then(i => i.toString());
-        core.info(test);
     }
 
     const downloadUrl = `https://cygwin.com/setup-x86_64.exe`
