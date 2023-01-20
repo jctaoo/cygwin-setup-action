@@ -67528,12 +67528,14 @@ async function main() {
     core.addPath(path.join(installDir, "bin"));
 
     // compress cygwin install dir to cache
-    zip.add(compressPath, [installDir], { recursive: true }).on("end", async () => {
-        const cacheId = await cache.saveCache(cachePath, cacheKey, {}, false);
-        if (!!cacheId) {
-            core.info(`Cache cygwin successfully (key: ${cacheId})`)
-        }
-    });
+    zip.add(compressPath, [installDir], { recursive: true })
+        .on("progress", (progress) => core.info(progress.percent))
+        .on("end", async () => {
+            const cacheId = await cache.saveCache(cachePath, cacheKey, {}, false);
+            if (!!cacheId) {
+                core.info(`Cache cygwin successfully (key: ${cacheId})`)
+            }
+        });
 }
 
 main().catch(error => core.setFailed(error.message));
