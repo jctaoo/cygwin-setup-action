@@ -67489,19 +67489,19 @@ async function main() {
         )
         .flat()
         .filter(i => i.trim().length !== 0);
-    const cacheKey = hash(packages.join(";"));
+    // const cacheKey = hash(packages.join(";"));
     // const compressPath = path.resolve("C:\\cygwin.7z");
 
-    core.info(`Cache key is: ${cacheKey}`)
+    // core.info(`Cache key is: ${cacheKey}`)
 
-    const cachePath = [
-        installDir
-    ]
-    const hitKey = await cache.restoreCache(cachePath, cacheKey, [], {}, false)
-    if (!!hitKey) {
-        core.info(`Find cygwin cache (key: ${hitKey}), skip installation.`)
-        return;
-    }
+    // const cachePath = [
+    //     installDir
+    // ]
+    // const hitKey = await cache.restoreCache(cachePath, cacheKey, [], {}, false)
+    // if (!!hitKey) {
+    //     core.info(`Find cygwin cache (key: ${hitKey}), skip installation.`)
+    //     return;
+    // }
 
     if (!fs.existsSync(installDir)) {
         fs.mkdirSync(installDir, { recursive: true });
@@ -67528,11 +67528,10 @@ async function main() {
     core.addPath(path.join(installDir, "bin"));
 
     // compress cygwin install dir to cache
-
-    const cacheId = await cache.saveCache(cachePath, cacheKey, {}, false);
-    if (!!cacheId) {
-        core.info(`Cache cygwin successfully (key: ${cacheId})`)
-    }
+    // const cacheId = await cache.saveCache(cachePath, cacheKey, {}, false);
+    // if (!!cacheId) {
+    //     core.info(`Cache cygwin successfully (key: ${cacheId})`)
+    // }
 }
 
 main().catch(error => core.setFailed(error.message));
